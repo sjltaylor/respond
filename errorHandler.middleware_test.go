@@ -7,7 +7,7 @@ import (
 	"respond/middleware"
 )
 
-func testErrorPageEndpoint(called *bool) ErrorPageEndpoint {
+func testErrorPageEndpoint(called *bool) ServerErrorEndpointFunc {
 
 	return func(response http.ResponseWriter, request *http.Request, err error) error {
 		*called = true
@@ -57,23 +57,6 @@ func TestErrorHandlerMiddlewareReturnsAnErrorIfTheErrorPageEndpointReturnsAnErro
 
 	if e == nil {
 		t.Fatal("should return any error returned by the error page handler")
-	}
-}
-
-func TestErrorHandlerMiddlewareWorksWithNilErrorPageEndpoint(t *testing.T) {
-
-	ehm := NewErrorHandlerMiddleware(nil)
-
-	var nextFunc middleware.NextFunc = func(response http.ResponseWriter) error {
-		return fmt.Errorf("BANG")
-	}
-
-	rw := newFakeResponseWriter()
-
-	ehm.Process(rw, nil, nextFunc)
-
-	if rw.status != 500 {
-		t.Fatalf("response status should be 500 but was %d", rw.status)
 	}
 }
 

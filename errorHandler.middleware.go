@@ -6,15 +6,15 @@ import (
 	"respond/middleware"
 )
 
-type ErrorPageEndpoint func(response http.ResponseWriter, request *http.Request, err error) error
+type ServerErrorEndpointFunc func(http.ResponseWriter, *http.Request, error) error
 
 type ErrorHandlerMiddleware struct {
-	ErrorPage ErrorPageEndpoint
+	ServerErrorEndpoint ServerErrorEndpointFunc
 }
 
-func NewErrorHandlerMiddleware(errorPageEndpoint ErrorPageEndpoint) *ErrorHandlerMiddleware {
+func NewErrorHandlerMiddleware(errorPageEndpoint ServerErrorEndpointFunc) *ErrorHandlerMiddleware {
 	return &ErrorHandlerMiddleware{
-		ErrorPage: errorPageEndpoint,
+		ServerErrorEndpoint: errorPageEndpoint,
 	}
 }
 
@@ -35,11 +35,7 @@ func (errorHandler *ErrorHandlerMiddleware) Process (response http.ResponseWrite
 				err = fmt.Errorf("%+v", e)
 			}			
 
-			if errorHandler.ErrorPage == nil {
-				_, err = response.Write([]byte(`Server Error`))
-			} else {
-				err = errorHandler.ErrorPage(response, request, err)
-			}
+			err = errorHandler.ServerErrorEndpoint(response, request, err)
 
 			if err != nil {
 				returnError = fmt.Errorf("%s", err)
