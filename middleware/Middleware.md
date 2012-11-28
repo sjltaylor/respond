@@ -31,15 +31,18 @@ This sequence of function is enclosed in a `http.HandlerFunc` which can be passe
 
 Note: other libraries such as [Gorilla web tooklit](http://www.gorillatoolkit.org/pkg/mux) also use `http.HandlerFunc`.
 
+HTTP requests are received by the first middleware which decided whether to forward the request 'upstream' to the next middleware, ultimately reach an endpoint. 
+
+Endpoints and middleware can return an error to be handled by downstream middlewares.
 
 ## How
 
 
-### Define a middleware chain
+### Define a middleware sequence
 
 ```
 import "respond/middleware"
-chain := middleware.Chain(mw1, mw2, …)
+middlewares := middleware.Middlewares(mw1, mw2, …)
 ```
 `mw1` and `mw2` implement `middleware.Middleware`
 
@@ -62,7 +65,7 @@ mw = func (response http.ResponseWriter, request *http.Request, next NextFunc) e
 	return nil
 }
 
-middleware.Chain(mw, …)
+middleware.Middlewares(mw, …)
 ```
 
 ### Example middleware function
@@ -74,8 +77,7 @@ func NoOpMiddleware (
 	next NextFunc) error {
 	
 	/*
-		parameter 'next' is used to call the next function in the 
-		middleware chain.
+		parameter 'next' is used to indicate that the request should be passed onto the next middleware.
 		
 		NextFunc takes a response writer as a parameter which 
 		allows middlewares to wrap the response writer before passing it on.
@@ -85,7 +87,7 @@ func NoOpMiddleware (
 	
 	/*
 		err is the error returned from middlewares/endpoints further 
-		up the chain.
+		upstream.
 	*/
 	
 	return err
@@ -123,21 +125,21 @@ The error is returned and handled by error handling middleware further down the 
 To create a `http.HandlerFunc` from this endpoint using middleware we call `Endpoint` or `EndpointFunc` on the chain:
 
 ```
-http.HandleFunc("/something", chain.EndpointFunc(endpointFunc))
+http.HandleFunc("/something", middlewares.EndpointFunc(endpointFunc))
 ```
 or if we have something which implements `middleware.Endpoint`:
 
 ```
-http.HandleFunc("/something", chain.Endpoint(implementorOfEndpoint))
+http.HandleFunc("/something", middlewares.Endpoint(implementorOfEndpoint))
 ```
 
-### Chains from chains
+### Middlewares And...
 
 ```
-longerChain := chain.Chain(mw3, mw4, …)
+extendedMiddleware := middlewares.And(mw3, mw4, …)
 ```
 
-`longerChain` contains all of the middleware in `chain` plus `mw3` and `mw4`. It is equivalent to `Chain(mw1, mw2, mw3, mw4)`
+`extendedMiddleware` contains all of `middlewares` and `mw3` and `mw4`. It is equivalent to `Middlewares(mw1, mw2, mw3, mw4)`
 
 
 ## Limitations

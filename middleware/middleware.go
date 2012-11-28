@@ -22,12 +22,10 @@ func (fn EndpointFunc) Process (response http.ResponseWriter, request *http.Requ
 	return fn(response, request)
 }
 
-type chain struct {
-	middlewares []Middleware
-}
+type middlewares []Middleware 
 
-func Chain(middlewares ...Middleware) *chain {
-	return &chain{middlewares: middlewares}
+func Middlewares(mws ...Middleware) middlewares {
+	return append([]Middleware{}, mws...)
 }
 
 func endpointAsMiddleware(ep Endpoint) Middleware {
@@ -43,22 +41,25 @@ func endpointAsMiddleware(ep Endpoint) Middleware {
 	return mw
 }
 
-func (c *chain) Chain(middlewares ...Middleware) *chain {
+func (mws middlewares) And(more ...Middleware) middlewares {
 
-	newMiddlewares := append([]Middleware{}, c.middlewares...)
-	newMiddlewares = append(newMiddlewares, middlewares...)
-	return &chain{middlewares: newMiddlewares}
+	var newMiddlewares middlewares
+	
+	newMiddlewares = append([]Middleware{}, mws...)
+	newMiddlewares = append(newMiddlewares, more...)
+	
+	return newMiddlewares
 }
 
-func (c *chain) EndpointFunc (fn EndpointFunc) http.HandlerFunc {
+func (mws middlewares) EndpointFunc (fn EndpointFunc) http.HandlerFunc {
 	var endpoint Endpoint
 	endpoint = fn
-	return c.Endpoint(endpoint)
+	return mws.Endpoint(endpoint)
 }
 
-func (c *chain) Endpoint(ep Endpoint) http.HandlerFunc {
+func (mws middlewares) Endpoint(ep Endpoint) http.HandlerFunc {
 
-	middlewares := append(c.middlewares, endpointAsMiddleware(ep))
+	middlewares := append(mws, endpointAsMiddleware(ep))
 
 	return func(response http.ResponseWriter, request *http.Request) {
 

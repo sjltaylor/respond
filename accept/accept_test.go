@@ -31,7 +31,7 @@ var (
 )
 
 func parseAcceptHeaderStringForTesting(t *testing.T, s string) *Header {
-	h, err := ParseAcceptHeaderString(s)
+	h, err := parseAcceptHeaderString(s)
 
 	if err != nil {
 		t.Fatalf("could not parse header string: %s: %s", s, err)
@@ -63,7 +63,7 @@ func TestParseValidAcceptHeaderString(t *testing.T) {
 
 func TestParseInvalidAcceptHeaderString(t *testing.T) {
 
-	_, err := ParseAcceptHeaderString("invalid accept header")
+	_, err := parseAcceptHeaderString("invalid accept header")
 
 	if err == nil {
 		t.Fatal("expected an error to be returned")

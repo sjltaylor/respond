@@ -38,26 +38,26 @@ type Header struct {
 	MediaRanges []*MediaRange
 }
 
-func NewHeader() *Header {
+func newHeader() *Header {
 	return &Header{make([]*MediaRange, 0)}
 }
 
 func ParseAcceptHeader(request *http.Request) (header *Header, err error) {
-	return ParseAcceptHeaderString(request.Header.Get(`Accept`))
+	return parseAcceptHeaderString(request.Header.Get(`Accept`))
 }
 
-func ParseAcceptHeaderString(s string) (header *Header, err error) {
+func parseAcceptHeaderString(s string) (header *Header, err error) {
 
 	defer func() {
 		if recoveredError := recover(); recoveredError != nil {
 			header = nil
-			err = fmt.Errorf("error parsing header: '%s': %s", s, recoveredError)
+			err = fmt.Errorf("Accept header not valid: '%s'", s)
 		}
 	}()
 
 	s = strings.ToLower(s)
 
-	h := NewHeader()
+	h := newHeader()
 
 	mediaRangeStrings := strings.Split(s, ",")
 

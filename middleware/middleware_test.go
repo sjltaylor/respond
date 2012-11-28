@@ -4,13 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"respond/testHelpers"
 )
-
-type fakeResponseWriter struct{}
-
-func (w *fakeResponseWriter) Header() http.Header                   { return nil }
-func (w *fakeResponseWriter) Write(bytes []byte) (i int, err error) { return }
-func (w *fakeResponseWriter) WriteHeader(i int)                     {}
 
 func TestMiddlewareErrorDefault(t *testing.T) {
 
@@ -20,9 +15,9 @@ func TestMiddlewareErrorDefault(t *testing.T) {
 
 	*/
 
-	chain := Chain()
+	middlewares := Middlewares()
 
-	httpHandler := chain.EndpointFunc(func(w http.ResponseWriter, r *http.Request) error {
+	httpHandler := middlewares.EndpointFunc(func(w http.ResponseWriter, r *http.Request) error {
 
 		return fmt.Errorf("ERROR!")
 	})
@@ -32,7 +27,7 @@ func TestMiddlewareErrorDefault(t *testing.T) {
 		e, ok := recover().(error)
 
 		if !ok || e.Error() != "ERROR!" {
-			t.Fatalf("the error from the middleware chain was passed to panic: %s", e)
+			t.Fatalf("the error from the middlewares was passed to panic: %s", e)
 		}
 	}()
 
@@ -46,22 +41,32 @@ func TestMiddlewareComposition(t *testing.T) {
 
 	mw1 = func(w http.ResponseWriter, r *http.Request, next NextFunc) error { return nil }
 
-	chain := Chain(mw1)
+	middlewares := Middlewares(mw1)
 
-	if len(chain.middlewares) != 1 {
-		t.Fatal(`chain has the wrong number of middlewares`)
-	}
+	func () {
+		expectedCount := 1
+		actualCount := len(middlewares)
+		
+		if actualCount != expectedCount {
+			t.Fatalf("wrong number of middlewares: %d instead of %d", actualCount, expectedCount)
+		}
+	}()
 
-	longerChain := chain.Chain(mw1)
+	extendedMiddlewares := middlewares.And(mw1)
 
-	if len(longerChain.middlewares) != 2 {
-		t.Fatal(`longer chain has the wrong number of middlewares`)
-	}
+	func () {
+		expectedCount := 2
+		actualCount := len(extendedMiddlewares)
+		
+		if actualCount != expectedCount {
+			t.Fatalf("wrong number of middlewares in extendedMiddlewares: %d instead of %d", actualCount, expectedCount)
+		}
+	}()
 }
 
 func TestMiddlewareChainExecution(t *testing.T) {
 
-	response := &fakeResponseWriter{}
+	response := testHelpers.NewFakeResponseWriter()
 	request := &http.Request{}
 
 	var lastMiddlewareCalled byte
@@ -69,7 +74,7 @@ func TestMiddlewareChainExecution(t *testing.T) {
 	// middleware 1 
 	var mw1Response http.ResponseWriter
 	var mw1Request *http.Request
-	var mw1ResponseWrapper http.ResponseWriter = &fakeResponseWriter{}
+	var mw1ResponseWrapper http.ResponseWriter = testHelpers.NewFakeResponseWriter()
 	var mw1StashedError error
 
 	var mw1 MiddlewareFunc = func(w http.ResponseWriter, r *http.Request, next NextFunc) error {
@@ -95,7 +100,7 @@ func TestMiddlewareChainExecution(t *testing.T) {
 	var endpointCalled bool
 	endpointError := fmt.Errorf("OH NO! something went wrong in the endpoint function")
 
-	httpHandler := Chain(mw1, mw2).EndpointFunc(func(w http.ResponseWriter, r *http.Request) error {
+	httpHandler := Middlewares(mw1, mw2).EndpointFunc(func(w http.ResponseWriter, r *http.Request) error {
 		endpointCalled = true
 		return endpointError
 	})

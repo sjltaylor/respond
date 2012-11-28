@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 	"respond/middleware"
+	"respond/testHelpers"
 )
 
 func testErrorPageEndpoint(called *bool) ServerErrorEndpointFunc {
@@ -24,12 +25,12 @@ func TestErrorHandlerMiddlewareHandlesReturnedErrors(t *testing.T) {
 		return fmt.Errorf("WALLOP")
 	}
 
-	rw := newFakeResponseWriter()
+	rw := testHelpers.NewFakeResponseWriter()
 
 	ehm.Process(rw, nil, nextFunc)
 
-	if rw.status != 500 {
-		t.Fatalf("response status should be 500 but was %d", rw.status)
+	if rw.Status != 500 {
+		t.Fatalf("response status should be 500 but was %d", rw.Status)
 	}
 
 	if !called {
@@ -47,12 +48,12 @@ func TestErrorHandlerMiddlewareReturnsAnErrorIfTheErrorPageEndpointReturnsAnErro
 		panic("ERROR!")
 	}
 
-	rw := newFakeResponseWriter()
+	rw := testHelpers.NewFakeResponseWriter()
 
 	e := ehm.Process(rw, nil, nextFunc)
 
-	if rw.status != 500 {
-		t.Fatalf("response status should be 500 but was %d", rw.status)
+	if rw.Status != 500 {
+		t.Fatalf("response status should be 500 but was %d", rw.Status)
 	}
 
 	if e == nil {
@@ -69,12 +70,40 @@ func TestErrorHandlerMiddlewareHandlesPanics(t *testing.T) {
 		panic("BANG")
 	}
 
-	rw := newFakeResponseWriter()
+	rw := testHelpers.NewFakeResponseWriter()
 
 	ehm.Process(rw, nil, nextFunc)
 
-	if rw.status != 500 {
-		t.Fatalf("response status should be 500 but was %d", rw.status)
+	if rw.Status != 500 {
+		t.Fatalf("response status should be 500 but was %d", rw.Status)
+	}
+
+	if !called {
+		t.Fatal("error page should have been called")
+	}
+}
+
+type TestExampleError struct {}
+func (e TestExampleError) Error () string { return "test example error" }
+func (e *TestExampleError) HTTPStatusCode () int {
+	return 406
+}
+
+func TestErrorHandlerMiddlewareAllowsCustomStatusCodes(t *testing.T) {
+
+	var called bool
+	ehm := NewErrorHandlerMiddleware(testErrorPageEndpoint(&called))
+
+	var nextFunc middleware.NextFunc = func(response http.ResponseWriter) error {
+		return &TestExampleError{}
+	}
+
+	rw := testHelpers.NewFakeResponseWriter()
+
+	ehm.Process(rw, nil, nextFunc)
+
+	if rw.Status != 406 {
+		t.Fatalf("response status should be 406 but was %d", rw.Status)
 	}
 
 	if !called {
