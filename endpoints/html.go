@@ -1,17 +1,22 @@
-package endpoint
+package endpoints
 
 import (
 	"net/http"
+	"path"
 	"html/template"
+	"fmt"
+	"bytes"
 )
 
 var ReloadTemplates bool
 var TemplatesDirectory string = "./webapp/html"
 
+type HTMLEndpointHandler func (http.ResponseWriter, *http.Request) (interface{}, error)
+
 type HTMLEndpoint struct {
 	Layout   string // **/<Layout>.layout.tmpl, from the root of TemplatesDirectory
 	Partials []string // **/<?>.tmpl from the root of the TemplatesDirectory
-	Handler func (http.ResponseWriter, *http.Request) interface{}, error
+	handler HTMLEndpointHandler
 	cachedTemplate *template.Template
 }
 
@@ -23,23 +28,83 @@ func NewHTMLEndpoint (layout string, partials ...string) *HTMLEndpoint {
 	}
 }
 
-func (endpoint *HTMLEndpoint) Handler (fn func (http.ResponseWriter, *http.Request) error) *HTMLEndpoint {
-	endpoint.Handler = fn
+func (endpoint *HTMLEndpoint) Handler (fn HTMLEndpointHandler) *HTMLEndpoint {
+	endpoint.handler = fn
 	return endpoint
 }
 
-func (endpoint *HTMLEndpoint) template () *template.Template {
+func (endpoint *HTMLEndpoint) loadTemplates () (t *template.Template, err error) {
+
+	// stdlib template libraries require the main template to be named after the first file in its set
 	
-	var t *template.Template
+	layoutFilename := endpoint.Layout + `.layout.tmpl`
+	
+	t = template.New(layoutFilename)
 
-	if ReloadTemplates {
+	filepaths := []string{path.Join(TemplatesDirectory, layoutFilename)}
 
+	for _, partial := range endpoint.Partials {
+		filepaths = append(filepaths, path.Join(TemplatesDirectory, partial + `.tmpl`))
 	}
 
+	t, err = t.ParseFiles(filepaths...)
+
+	if err != nil {
+		return nil, fmt.Errorf("parse failed: %+v, %s", endpoint, err)
+	}
+
+	return
+} 
+
+func (endpoint *HTMLEndpoint) template () (*template.Template, error) {
+	
+	if ReloadTemplates {
+		return endpoint.loadTemplates()
+	}
+
+	if endpoint.cachedTemplate == nil {
+		var err error
+		
+		if endpoint.cachedTemplate, err = endpoint.loadTemplates(); err != nil {
+			return nil, err
+		}
+	}
+
+	return endpoint.cachedTemplate, nil
 }
 
-func (endpoint *HTMLEndpoint) Process (response http.ResponseWriter, request *http.Request) error {
-	// if the Handler returns an error this should return that error
-	// if the request does not accept text/html -> 406
+func (endpoint *HTMLEndpoint) Process (response http.ResponseWriter, request *http.Request) (returnError error) {
+	
+	defer func() {
 
+		if err := recover(); err != nil {
+			returnError = fmt.Errorf("html endpoint: render failed: %s", err)
+		}
+	}()
+
+	t, err := endpoint.template()
+
+	if err != nil {
+		panic(err)
+	}
+
+	data, err := endpoint.handler(response, request)
+
+	if err != nil {
+		panic(err)
+	}
+
+	buffer := bytes.NewBufferString("")
+
+	if err = t.Execute(buffer, data); err != nil {
+		panic(err)
+	}
+
+	if _, err = response.Write([]byte(buffer.String())); err != nil {
+		panic(err)
+	}
+
+	return nil
 }
+
+
