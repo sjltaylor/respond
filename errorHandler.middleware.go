@@ -8,6 +8,10 @@ import (
 
 type ServerErrorEndpointFunc func(http.ResponseWriter, *http.Request, error) error
 
+type StatusCodedError interface {
+	HTTPStatusCode() int
+}
+
 type ErrorHandlerMiddleware struct {
 	ServerErrorEndpoint ServerErrorEndpointFunc
 }
@@ -25,15 +29,19 @@ func (errorHandler *ErrorHandlerMiddleware) Process (response http.ResponseWrite
 
 		if recovered := recover(); recovered != nil {
 
-			response.WriteHeader(500)
-
 			var err error
 			
 			if e, ok := recovered.(error); ok {
 				err = e
 			} else {
 				err = fmt.Errorf("%+v", e)
-			}			
+			}
+
+			if statusCodedError, ok := err.(StatusCodedError); ok {
+				response.WriteHeader(statusCodedError.HTTPStatusCode())
+			} else {
+				response.WriteHeader(500)
+			}
 
 			err = errorHandler.ServerErrorEndpoint(response, request, err)
 
