@@ -11,7 +11,7 @@ type NotFoundError struct {
 	ResourceDescription string
 }
 
-func (err NotFoundError) Error() string {
+func (err *NotFoundError) Error() string {
 	return fmt.Sprintf("resource not found: %s", err.ResourceDescription)
 }
 
@@ -36,7 +36,7 @@ func NewNotAcceptableError(request *http.Request) *NotAcceptableError {
 	return &NotAcceptableError{request.Header.Get(`Accept`)}
 }
 
-func (err NotAcceptableError) Error() string {
+func (err *NotAcceptableError) Error() string {
 	return fmt.Sprintf("unable to generate content satisfying Accept header: %s", err.Accept)
 }
 
@@ -55,7 +55,7 @@ func NewBadRequestError(format string, data ...interface{}) *BadRequestError {
 	return &BadRequestError{Detail: fmt.Sprintf(format, data)}
 }
 
-func (err BadRequestError) Error() string {
+func (err *BadRequestError) Error() string {
 	return err.Detail
 }
 
