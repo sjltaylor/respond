@@ -5,11 +5,12 @@ import "net/http"
 type FakeResponseWriter struct {
   Body string
   Status int
+  header http.Header
 }
 
 func (rw *FakeResponseWriter) Header() http.Header {
   
-  return nil
+  return rw.header
 }
 
 func (rw *FakeResponseWriter) Write(bytes []byte) (int, error) {
@@ -23,5 +24,7 @@ func (rw *FakeResponseWriter) WriteHeader(sc int) {
 }
 
 func NewFakeResponseWriter() *FakeResponseWriter {
-  return &FakeResponseWriter{}
+  return &FakeResponseWriter{
+  	header: make(http.Header),
+  }
 }

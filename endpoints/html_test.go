@@ -37,6 +37,10 @@ func TestHTMLEndpointRendersTemplateWithTheDataReturnedByTheHandler (t *testing.
 	if response.Body != expectedBodyContent {
 		t.Fatalf("body content not rendered correctly. got '%s' instead of '%s'.", response.Body, expectedBodyContent)
 	}
+
+	if response.Header().Get(`Content-Type`) != `text/html` {
+		t.Fatalf("response content type should be text/html")
+	}
 }
 
 func TestHTMLEndpointReturnsAnErrorIfRenderingFails (t *testing.T) {

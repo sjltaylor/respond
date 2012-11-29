@@ -82,6 +82,8 @@ func (endpoint *HTMLEndpoint) Process (response http.ResponseWriter, request *ht
 		}
 	}()
 
+	response.Header().Add(`Content-Type`, `text/html`)
+
 	t, err := endpoint.template()
 
 	if err != nil {
