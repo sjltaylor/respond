@@ -23,8 +23,9 @@ func dbstore() *DBStore {
 			panic(err)
 		} else {
 
-			RecreateUserStore(db)
 			store = NewDBStore(db)
+			store.Reset()
+			store.PrepareOrPanic()
 		}
 	}
 
@@ -34,6 +35,23 @@ func dbstore() *DBStore {
 func isNotFoundError(err error) bool {
 	_, ok := err.(*respond.NotFoundError)
 	return ok
+}
+
+func (store *DBStore) createUser(email, password string) (user *User, err error) {
+
+	var tx *sql.Tx
+
+	if tx, err = store.db.Begin(); err != nil {
+		return
+	}
+
+	if user, err = store.CreateUserInTx(tx, email, password); err != nil {
+		return
+	}
+
+	err = tx.Commit()
+
+	return
 }
 
 func TestCreateUser(t *testing.T) {
@@ -50,7 +68,7 @@ func TestCreateUser(t *testing.T) {
 	var user *User
 	email := emailGenerator.Next()
 
-	if u, err := store.CreateUser(email, "password"); err != nil {
+	if u, err := store.createUser(email, "password"); err != nil {
 		t.Fatal(err)
 	} else {
 		user = u
@@ -97,7 +115,7 @@ func TestFindUser(t *testing.T) {
 
 	email := strings.ToUpper(emailGenerator.Next())
 
-	if _, err := store.CreateUser(email, "password"); err != nil {
+	if _, err := store.createUser(email, "password"); err != nil {
 		t.Fatal("error creating user: ", err)
 	}
 
@@ -142,11 +160,44 @@ func TestFindUserWithInvalidEmail(t *testing.T) {
 
 	email := emailGenerator.Next()
 
-	if _, err := store.CreateUser(email, "password"); err != nil {
+	if _, err := store.createUser(email, "password"); err != nil {
 		t.Fatal("error creating user: ", err)
 	}
 
 	if _, err := store.FindUserByEmail("iamnotthere@all.com"); !isNotFoundError(err) {
 		t.Fatal("does not return an NotFoundError when a non-existant email is passed")
+	}
+}
+
+func TestFindUserAgainstPassword(t *testing.T) {
+
+	email := emailGenerator.Next()
+
+	if _, err := store.createUser(email, "very-secret"); err != nil {
+		t.Fatal(err)
+	}
+
+	user, err := store.FindUserByEmailAgainstPassword(email, "very-secret")
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if user == nil {
+		t.Fatal("user not returned")
+	}
+
+	user, err = store.FindUserByEmailAgainstPassword(email, "WRONG!!PASSWORD")
+
+	if dataError, ok := err.(*respond.DataError); ok {
+		if dataError.Errors["Password"][0] != "password mismatch" {
+			t.Fatal("password mismatch error not returned")
+		}
+	} else {
+		t.Fatal("returned error was not a *respond.DataError")
+	}
+
+	if user != nil {
+		t.Fatal("user returned against invalid password")
 	}
 }

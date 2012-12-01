@@ -9,6 +9,20 @@ import (
 	"time"
 )
 
+const createStmt string = `
+
+	CREATE TABLE users (
+    "id"            SERIAL PRIMARY KEY,
+    "email"         text NOT NULL,
+    "password_hash" text NOT NULL,
+    "password_salt" text NOT NULL,
+    "created_at"    timestamp NOT NULL,
+    "updated_at"    timestamp NOT NULL
+  );
+
+  CREATE UNIQUE INDEX idx_user_email ON users (email);
+`
+
 type DBStore struct {
 	db                  *sql.DB
 	insertUserStmt      *sql.Stmt
@@ -17,13 +31,26 @@ type DBStore struct {
 
 func NewDBStore(db *sql.DB) *DBStore {
 	store := &DBStore{db: db}
-	store.prepareUserStmts(db)
 	return store
 }
 
-func (store *DBStore) prepareUserStmts(db *sql.DB) {
+func (store * DBStore) Create () (err error) {
+	_, err = store.db.Exec(createStmt)
+	return
+}
 
-	store.insertUserStmt = sqldb.PrepareOrPanic(db, `
+func (store *DBStore) Reset () (err error) {
+	
+	if _, err = store.db.Exec(`DROP TABLE IF EXISTS users;`); err != nil {
+		return
+	}
+	
+	return store.Create()
+}
+
+func (store *DBStore) PrepareOrPanic() {
+
+	store.insertUserStmt = sqldb.PrepareOrPanic(store.db, `
 		INSERT INTO "users" 
 			("email", "password_salt", "password_hash", "created_at", "updated_at") 
 		VALUES 
@@ -31,7 +58,7 @@ func (store *DBStore) prepareUserStmts(db *sql.DB) {
 		RETURNING "id";
 	`)
 
-	store.findUserByEmailStmt = sqldb.PrepareOrPanic(db, `
+	store.findUserByEmailStmt = sqldb.PrepareOrPanic(store.db, `
 		SELECT "id", "email", "password_salt", "password_hash", "created_at", "updated_at" FROM "users" WHERE "email" ILIKE $1;
 	`)
 }
@@ -61,23 +88,6 @@ func (store *DBStore) CreateUserInTx(tx *sql.Tx, email, password string) (user *
 	return
 }
 
-func (store *DBStore) CreateUser(email, password string) (user *User, err error) {
-
-	var tx *sql.Tx
-
-	if tx, err = store.db.Begin(); err != nil {
-		return
-	}
-
-	if user, err = store.CreateUserInTx(tx, email, password); err != nil {
-		return
-	}
-
-	err = tx.Commit()
-
-	return
-}
-
 func (store *DBStore) FindUserByEmail(email string) (user *User, err error) {
 
 	user = &User{}
@@ -102,3 +112,22 @@ func (store *DBStore) FindUserByEmail(email string) (user *User, err error) {
 
 	return
 }
+
+func (store *DBStore) FindUserByEmailAgainstPassword(email, password string) (user *User, err error) {
+
+	if user, err = store.FindUserByEmail(email); err != nil {
+		return
+	}
+
+	if user.PasswordHash != crypto.Base64HashOfSaltedPassword(password, user.PasswordSalt) {
+
+		dataError := respond.NewDataError()
+		dataError.Add("Password", "password mismatch")
+
+		return nil, dataError
+	}
+
+	return user, nil
+}
+
+
