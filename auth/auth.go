@@ -1,16 +1,16 @@
 package auth
 
 import (
-	"respond/crypto"
-	"respond"
 	"regexp"
+	"respond"
+	"respond/crypto"
 )
 
 const EmailValidationRegex string = ".+@.+" // very leanient, enough.
 
 type UserStore interface {
-	CreateUser(email string, password string)(*User, error)
-	FindUserByEmail(string)(*User, error)
+	CreateUser(email string, password string) (*User, error)
+	FindUserByEmail(string) (*User, error)
 }
 
 type Auth struct {

@@ -1,9 +1,9 @@
 package endpoints
 
 import (
-	"net/http"
-	"fmt"
 	"encoding/json"
+	"fmt"
+	"net/http"
 )
 
 type JSONEndpoint struct {
@@ -11,18 +11,17 @@ type JSONEndpoint struct {
 }
 
 func NewJSONEndpoint() *JSONEndpoint {
-	
+
 	return &JSONEndpoint{}
 }
 
-func (endpoint *JSONEndpoint) Handler (fn Handler) *JSONEndpoint {
+func (endpoint *JSONEndpoint) Handler(fn Handler) *JSONEndpoint {
 	endpoint.handler = fn
 	return endpoint
 }
 
+func (endpoint *JSONEndpoint) Process(response http.ResponseWriter, request *http.Request) (returnError error) {
 
-func (endpoint *JSONEndpoint) Process (response http.ResponseWriter, request *http.Request) (returnError error) {
-	
 	defer func() {
 
 		if err := recover(); err != nil {
@@ -41,7 +40,7 @@ func (endpoint *JSONEndpoint) Process (response http.ResponseWriter, request *ht
 	if payload, err = json.Marshal(data); err != nil {
 		panic(err)
 	}
-	
+
 	if _, err = response.Write(payload); err != nil {
 		panic(err)
 	}
@@ -50,5 +49,3 @@ func (endpoint *JSONEndpoint) Process (response http.ResponseWriter, request *ht
 
 	return nil
 }
-
-

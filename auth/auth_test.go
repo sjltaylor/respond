@@ -9,10 +9,9 @@ var userStore UserStore
 var auth *Auth
 
 type testUserStore struct {
-
 }
 
-func init () {
+func init() {
 	userStore = dbstore()
 	auth = New(userStore)
 }

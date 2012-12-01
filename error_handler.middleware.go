@@ -22,7 +22,7 @@ func NewErrorHandlerMiddleware(errorPageEndpoint ServerErrorEndpointFunc) *Error
 	}
 }
 
-func (errorHandler *ErrorHandlerMiddleware) Process (response http.ResponseWriter, request *http.Request,
+func (errorHandler *ErrorHandlerMiddleware) Process(response http.ResponseWriter, request *http.Request,
 	next middleware.NextFunc) (returnError error) {
 
 	defer func() {
@@ -30,7 +30,7 @@ func (errorHandler *ErrorHandlerMiddleware) Process (response http.ResponseWrite
 		if recovered := recover(); recovered != nil {
 
 			var err error
-			
+
 			if e, ok := recovered.(error); ok {
 				err = e
 			} else {

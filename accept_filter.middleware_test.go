@@ -2,13 +2,13 @@ package respond
 
 import (
 	"fmt"
-	"testing"
-	"respond/middleware"
 	"net/http"
 	"reflect"
+	"respond/middleware"
+	"testing"
 )
 
-func TestAcceptFilterMiddlewareFiltersRequestsThatCannotBeFullfilled (t *testing.T) {
+func TestAcceptFilterMiddlewareFiltersRequestsThatCannotBeFullfilled(t *testing.T) {
 
 	afmw := NewAcceptFilterMiddleware(`application/json`)
 
@@ -33,7 +33,7 @@ func TestAcceptFilterMiddlewareFiltersRequestsThatCannotBeFullfilled (t *testing
 	}
 }
 
-func TestAcceptFilterMiddlewareDoesNotFilterRequestsThatCanBeFullfilled (t *testing.T) {
+func TestAcceptFilterMiddlewareDoesNotFilterRequestsThatCanBeFullfilled(t *testing.T) {
 
 	afmw := NewAcceptFilterMiddleware(`application/json`)
 
@@ -60,7 +60,7 @@ func TestAcceptFilterMiddlewareDoesNotFilterRequestsThatCanBeFullfilled (t *test
 	}
 }
 
-func TestAcceptFilterMiddlewareReturnsABadRequestErrorIfTheAcceptHeaderIsMalformed (t *testing.T) {
+func TestAcceptFilterMiddlewareReturnsABadRequestErrorIfTheAcceptHeaderIsMalformed(t *testing.T) {
 
 	afmw := NewAcceptFilterMiddleware(`application/json`)
 

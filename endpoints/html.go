@@ -1,48 +1,48 @@
 package endpoints
 
 import (
+	"bytes"
+	"fmt"
+	"html/template"
 	"net/http"
 	"path"
-	"html/template"
-	"fmt"
-	"bytes"
 )
 
 var ReloadTemplates bool
 var TemplatesDirectory string = "./webapp/html"
 
 type HTMLEndpoint struct {
-	Layout   string // **/<Layout>.layout.tmpl, from the root of TemplatesDirectory
-	Partials []string // **/<?>.tmpl from the root of the TemplatesDirectory
-	handler Handler
+	Layout         string   // **/<Layout>.layout.tmpl, from the root of TemplatesDirectory
+	Partials       []string // **/<?>.tmpl from the root of the TemplatesDirectory
+	handler        Handler
 	cachedTemplate *template.Template
 }
 
-func NewHTMLEndpoint (layout string, partials ...string) *HTMLEndpoint {
-	
+func NewHTMLEndpoint(layout string, partials ...string) *HTMLEndpoint {
+
 	return &HTMLEndpoint{
-		Layout: layout,
+		Layout:   layout,
 		Partials: partials,
 	}
 }
 
-func (endpoint *HTMLEndpoint) Handler (fn Handler) *HTMLEndpoint {
+func (endpoint *HTMLEndpoint) Handler(fn Handler) *HTMLEndpoint {
 	endpoint.handler = fn
 	return endpoint
 }
 
-func (endpoint *HTMLEndpoint) loadTemplates () (t *template.Template, err error) {
+func (endpoint *HTMLEndpoint) loadTemplates() (t *template.Template, err error) {
 
 	// stdlib template libraries require the main template to be named after the first file in its set
-	
+
 	layoutFilename := endpoint.Layout + `.layout.tmpl`
-	
+
 	t = template.New(layoutFilename)
 
 	filepaths := []string{path.Join(TemplatesDirectory, layoutFilename)}
 
 	for _, partial := range endpoint.Partials {
-		filepaths = append(filepaths, path.Join(TemplatesDirectory, partial + `.tmpl`))
+		filepaths = append(filepaths, path.Join(TemplatesDirectory, partial+`.tmpl`))
 	}
 
 	t, err = t.ParseFiles(filepaths...)
@@ -52,17 +52,17 @@ func (endpoint *HTMLEndpoint) loadTemplates () (t *template.Template, err error)
 	}
 
 	return
-} 
+}
 
-func (endpoint *HTMLEndpoint) template () (*template.Template, error) {
-	
+func (endpoint *HTMLEndpoint) template() (*template.Template, error) {
+
 	if ReloadTemplates {
 		return endpoint.loadTemplates()
 	}
 
 	if endpoint.cachedTemplate == nil {
 		var err error
-		
+
 		if endpoint.cachedTemplate, err = endpoint.loadTemplates(); err != nil {
 			return nil, err
 		}
@@ -71,8 +71,8 @@ func (endpoint *HTMLEndpoint) template () (*template.Template, error) {
 	return endpoint.cachedTemplate, nil
 }
 
-func (endpoint *HTMLEndpoint) Process (response http.ResponseWriter, request *http.Request) (returnError error) {
-	
+func (endpoint *HTMLEndpoint) Process(response http.ResponseWriter, request *http.Request) (returnError error) {
+
 	defer func() {
 
 		if err := recover(); err != nil {
@@ -106,5 +106,3 @@ func (endpoint *HTMLEndpoint) Process (response http.ResponseWriter, request *ht
 
 	return nil
 }
-
-

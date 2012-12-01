@@ -2,12 +2,12 @@ package javascripts
 
 import (
 	"code.google.com/p/gorilla/mux"
-	"respond"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
+	"respond"
 )
 
 type JavascriptEndpoint struct {

@@ -14,15 +14,15 @@ type NextFunc func(http.ResponseWriter) error
 type MiddlewareFunc func(http.ResponseWriter, *http.Request, NextFunc) error
 type EndpointFunc func(http.ResponseWriter, *http.Request) error
 
-func (fn MiddlewareFunc) Process (response http.ResponseWriter, request *http.Request, next NextFunc) error {
+func (fn MiddlewareFunc) Process(response http.ResponseWriter, request *http.Request, next NextFunc) error {
 	return fn(response, request, next)
 }
 
-func (fn EndpointFunc) Process (response http.ResponseWriter, request *http.Request) error {
+func (fn EndpointFunc) Process(response http.ResponseWriter, request *http.Request) error {
 	return fn(response, request)
 }
 
-type middlewares []Middleware 
+type middlewares []Middleware
 
 func Middlewares(mws ...Middleware) middlewares {
 	return append([]Middleware{}, mws...)
@@ -44,14 +44,14 @@ func endpointAsMiddleware(ep Endpoint) Middleware {
 func (mws middlewares) And(more ...Middleware) middlewares {
 
 	var newMiddlewares middlewares
-	
+
 	newMiddlewares = append([]Middleware{}, mws...)
 	newMiddlewares = append(newMiddlewares, more...)
-	
+
 	return newMiddlewares
 }
 
-func (mws middlewares) EndpointFunc (fn EndpointFunc) http.HandlerFunc {
+func (mws middlewares) EndpointFunc(fn EndpointFunc) http.HandlerFunc {
 	var endpoint Endpoint
 	endpoint = fn
 	return mws.Endpoint(endpoint)

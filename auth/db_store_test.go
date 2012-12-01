@@ -1,24 +1,24 @@
 package auth
 
 import (
+	"database/sql"
+	_ "github.com/bmizerany/pq"
 	"respond"
 	"strings"
 	"testing"
 	"time"
-	"database/sql"
-	_ "github.com/bmizerany/pq"
 )
 
 var store *DBStore
 
-func init () {
+func init() {
 	store = dbstore()
 }
 
-func dbstore() *DBStore{
+func dbstore() *DBStore {
 
 	if store == nil {
-	
+
 		if db, err := sql.Open("postgres", "dbname=respond_auth_testing sslmode=disable"); err != nil {
 			panic(err)
 		} else {
@@ -31,11 +31,10 @@ func dbstore() *DBStore{
 	return store
 }
 
-func isNotFoundError (err error) bool {
+func isNotFoundError(err error) bool {
 	_, ok := err.(*respond.NotFoundError)
 	return ok
 }
-
 
 func TestCreateUser(t *testing.T) {
 

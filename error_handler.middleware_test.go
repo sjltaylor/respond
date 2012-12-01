@@ -3,9 +3,9 @@ package respond
 import (
 	"fmt"
 	"net/http"
-	"testing"
 	"respond/middleware"
 	"respond/test_helpers"
+	"testing"
 )
 
 func testErrorPageEndpoint(called *bool) ServerErrorEndpointFunc {
@@ -83,9 +83,10 @@ func TestErrorHandlerMiddlewareHandlesPanics(t *testing.T) {
 	}
 }
 
-type TestExampleError struct {}
-func (e TestExampleError) Error () string { return "test example error" }
-func (e *TestExampleError) HTTPStatusCode () int {
+type TestExampleError struct{}
+
+func (e TestExampleError) Error() string { return "test example error" }
+func (e *TestExampleError) HTTPStatusCode() int {
 	return 406
 }
 

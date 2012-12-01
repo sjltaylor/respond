@@ -3,8 +3,8 @@ package middleware
 import (
 	"fmt"
 	"net/http"
-	"testing"
 	"respond/test_helpers"
+	"testing"
 )
 
 func TestMiddlewareErrorDefault(t *testing.T) {
@@ -43,10 +43,10 @@ func TestMiddlewareComposition(t *testing.T) {
 
 	middlewares := Middlewares(mw1)
 
-	func () {
+	func() {
 		expectedCount := 1
 		actualCount := len(middlewares)
-		
+
 		if actualCount != expectedCount {
 			t.Fatalf("wrong number of middlewares: %d instead of %d", actualCount, expectedCount)
 		}
@@ -54,10 +54,10 @@ func TestMiddlewareComposition(t *testing.T) {
 
 	extendedMiddlewares := middlewares.And(mw1)
 
-	func () {
+	func() {
 		expectedCount := 2
 		actualCount := len(extendedMiddlewares)
-		
+
 		if actualCount != expectedCount {
 			t.Fatalf("wrong number of middlewares in extendedMiddlewares: %d instead of %d", actualCount, expectedCount)
 		}

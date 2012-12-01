@@ -1,10 +1,10 @@
 package auth
 
 import (
-	"respond/sqldb"
 	"database/sql"
-	"respond/crypto"
 	"respond"
+	"respond/crypto"
+	"respond/sqldb"
 	"strings"
 	"time"
 )
@@ -16,7 +16,7 @@ type DBStore struct {
 }
 
 func NewDBStore(db *sql.DB) *DBStore {
-	store := &DBStore{db:db}
+	store := &DBStore{db: db}
 	store.prepareUserStmts(db)
 	return store
 }

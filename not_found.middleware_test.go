@@ -2,23 +2,23 @@ package respond
 
 import (
 	"fmt"
+	"net/http"
 	"respond/middleware"
 	"testing"
-	"net/http"
 )
 
-func TestNotFoundErrorMiddleware (t *testing.T) {
+func TestNotFoundErrorMiddleware(t *testing.T) {
 
 	called := false
 
-	var notFoundEndpoint NotFoundErrorEndpointFunc = func (response http.ResponseWriter, request *http.Request, err *NotFoundError) error {
+	var notFoundEndpoint NotFoundErrorEndpointFunc = func(response http.ResponseWriter, request *http.Request, err *NotFoundError) error {
 		called = true
 		return nil
 	}
 
 	notFoundMiddleware := NewNotFoundMiddleware(notFoundEndpoint)
 
-	var next middleware.NextFunc = func (response http.ResponseWriter) error {
+	var next middleware.NextFunc = func(response http.ResponseWriter) error {
 		return NewNotFoundError("something important")
 	}
 
@@ -34,7 +34,7 @@ func TestNotFoundErrorMiddleware (t *testing.T) {
 
 	called = false
 
-	next = func (response http.ResponseWriter) error {
+	next = func(response http.ResponseWriter) error {
 		return fmt.Errorf("some other error")
 	}
 
@@ -48,4 +48,3 @@ func TestNotFoundErrorMiddleware (t *testing.T) {
 		t.Fatal("error should have been return for the next middle up to handle")
 	}
 }
-

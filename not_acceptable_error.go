@@ -5,7 +5,6 @@ import (
 	"net/http"
 )
 
-
 ////// Not Acceptable
 
 type NotAcceptableError struct {

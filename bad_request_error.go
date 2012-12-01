@@ -2,7 +2,6 @@ package respond
 
 import "fmt"
 
-
 ////// Bad Request
 
 type BadRequestError struct {

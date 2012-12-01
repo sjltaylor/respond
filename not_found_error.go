@@ -2,7 +2,6 @@ package respond
 
 import "fmt"
 
-
 ////// Not Found
 
 type NotFoundError struct {

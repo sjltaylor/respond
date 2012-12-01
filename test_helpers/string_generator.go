@@ -9,7 +9,7 @@ type StringGenerator struct {
 	seq int64
 }
 
-func NewStringGenerator (fmt string) *StringGenerator {
+func NewStringGenerator(fmt string) *StringGenerator {
 	return &StringGenerator{
 		fmt: fmt,
 		seq: 1,

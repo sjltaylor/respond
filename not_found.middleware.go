@@ -1,8 +1,8 @@
 package respond
 
 import (
-	"respond/middleware"
 	"net/http"
+	"respond/middleware"
 )
 
 type NotFoundErrorEndpointFunc func(http.ResponseWriter, *http.Request, *NotFoundError) error
@@ -17,16 +17,16 @@ func NewNotFoundMiddleware(errorPageEndpoint NotFoundErrorEndpointFunc) *NotFoun
 	}
 }
 
-func (notFound *NotFoundMiddleware) Process (response http.ResponseWriter, request *http.Request,
+func (notFound *NotFoundMiddleware) Process(response http.ResponseWriter, request *http.Request,
 	next middleware.NextFunc) (returnError error) {
 
 	if err := next(response); err != nil {
 		if notFoundError, ok := err.(*NotFoundError); ok {
 			return notFound.NotFoundEndpoint(response, request, notFoundError)
-		}	
+		}
 
 		return err
 	}
 
 	return nil
-} 
+}
