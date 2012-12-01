@@ -11,12 +11,10 @@ import (
 var ReloadTemplates bool
 var TemplatesDirectory string = "./webapp/html"
 
-type HTMLEndpointHandler func (http.ResponseWriter, *http.Request) (interface{}, error)
-
 type HTMLEndpoint struct {
 	Layout   string // **/<Layout>.layout.tmpl, from the root of TemplatesDirectory
 	Partials []string // **/<?>.tmpl from the root of the TemplatesDirectory
-	handler HTMLEndpointHandler
+	handler Handler
 	cachedTemplate *template.Template
 }
 
@@ -28,7 +26,7 @@ func NewHTMLEndpoint (layout string, partials ...string) *HTMLEndpoint {
 	}
 }
 
-func (endpoint *HTMLEndpoint) Handler (fn HTMLEndpointHandler) *HTMLEndpoint {
+func (endpoint *HTMLEndpoint) Handler (fn Handler) *HTMLEndpoint {
 	endpoint.handler = fn
 	return endpoint
 }
@@ -82,8 +80,6 @@ func (endpoint *HTMLEndpoint) Process (response http.ResponseWriter, request *ht
 		}
 	}()
 
-	response.Header().Add(`Content-Type`, `text/html`)
-
 	t, err := endpoint.template()
 
 	if err != nil {
@@ -105,6 +101,8 @@ func (endpoint *HTMLEndpoint) Process (response http.ResponseWriter, request *ht
 	if _, err = response.Write([]byte(buffer.String())); err != nil {
 		panic(err)
 	}
+
+	response.Header().Add(`Content-Type`, `text/html`)
 
 	return nil
 }

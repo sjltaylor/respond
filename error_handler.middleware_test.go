@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 	"respond/middleware"
-	"respond/testHelpers"
+	"respond/test_helpers"
 )
 
 func testErrorPageEndpoint(called *bool) ServerErrorEndpointFunc {

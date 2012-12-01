@@ -4,31 +4,47 @@ import (
 	"fmt"
 	"testing"
 	"net/http"
-	"respond/testHelpers"
+	"respond/test_helpers"
 )
 
-var failingHandler HTMLEndpointHandler = func (response http.ResponseWriter, request *http.Request) (interface{}, error) {
-	return nil, fmt.Errorf("FAILED")
+type HTMLEndpointTest struct {
+	success         *HTMLEndpoint
+	failingHandling *HTMLEndpoint
+	failingRender   *HTMLEndpoint
 }
 
-var successfulHandler HTMLEndpointHandler = func (response http.ResponseWriter, request *http.Request) (interface{}, error) {
-	return "HELLO", nil
-}
-
-var exampleSuccessfulEndpoint *HTMLEndpoint = NewHTMLEndpoint("test-layout", "one", "nested/two").Handler(successfulHandler)
-var exampleFailingEndpoint    *HTMLEndpoint = NewHTMLEndpoint("test-layout", "one", "nested/two").Handler(failingHandler)
-
-var exampleFailingRenderEndpoint *HTMLEndpoint = NewHTMLEndpoint("DOES NOT EXIST", "nor do i", "nested/or me!").Handler(successfulHandler)
+var htmlEndpointTest *HTMLEndpointTest
 
 func init () {
 	TemplatesDirectory = "./test_templates"
+	htmlEndpointTest = buildHtmlEndpointTest()
+}
+
+func buildHtmlEndpointTest () *HTMLEndpointTest {
+
+	htmlEndpointTest := &HTMLEndpointTest{}
+
+	var failingHandler Handler = func (response http.ResponseWriter, request *http.Request) (interface{}, error) {
+		return nil, fmt.Errorf("FAILED")
+	}
+
+	var successfulHandler Handler = func (response http.ResponseWriter, request *http.Request) (interface{}, error) {
+		return "HELLO", nil
+	}
+
+	htmlEndpointTest.success = NewHTMLEndpoint("test-layout", "one", "nested/two").Handler(successfulHandler)
+	htmlEndpointTest.failingHandling    = NewHTMLEndpoint("test-layout", "one", "nested/two").Handler(failingHandler)
+
+	htmlEndpointTest.failingRender = NewHTMLEndpoint("DOES NOT EXIST", "nor do i", "nested/or me!").Handler(successfulHandler)
+
+	return htmlEndpointTest
 }
 
 func TestHTMLEndpointRendersTemplateWithTheDataReturnedByTheHandler (t *testing.T) {
 
 	response := testHelpers.NewFakeResponseWriter()
 	
-	if err := exampleSuccessfulEndpoint.Process(response, nil); err != nil {
+	if err := htmlEndpointTest.success.Process(response, nil); err != nil {
 		t.Fatalf("processing failed: %s", err)
 	}
 
@@ -45,14 +61,14 @@ func TestHTMLEndpointRendersTemplateWithTheDataReturnedByTheHandler (t *testing.
 
 func TestHTMLEndpointReturnsAnErrorIfRenderingFails (t *testing.T) {
 
-	if err := exampleFailingRenderEndpoint.Process(nil, nil); err == nil {
+	if err := htmlEndpointTest.failingRender.Process(nil, nil); err == nil {
 		t.Fatal("should return an error when rendering fails")
 	}
 }
 
 func TestHTMLEndpointReturnsAnErrorIfTheHandlerReturnsAnError (t *testing.T) {
 
-	if err := exampleFailingEndpoint.Process(nil, nil); err == nil {
+	if err := htmlEndpointTest.failingHandling.Process(nil, nil); err == nil {
 		t.Fatalf("should return an error if the handler fails")
 	}
 }

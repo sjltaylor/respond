@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
-	"respond/testHelpers"
+	"respond/test_helpers"
 )
 
 func TestMiddlewareErrorDefault(t *testing.T) {
