@@ -2,7 +2,6 @@ package auth
 
 import (
 	"respond"
-	"respond/test_helpers"
 	"strings"
 	"testing"
 	"time"
@@ -50,7 +49,7 @@ func TestCreateUser(t *testing.T) {
 	}
 
 	var user *User
-	email := testHelpers.GenerateEmailAddress()
+	email := emailGenerator.Next()
 
 	if u, err := store.CreateUser(email, "password"); err != nil {
 		t.Fatal(err)
@@ -97,7 +96,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestFindUser(t *testing.T) {
 
-	email := strings.ToUpper(testHelpers.GenerateEmailAddress())
+	email := strings.ToUpper(emailGenerator.Next())
 
 	if _, err := store.CreateUser(email, "password"); err != nil {
 		t.Fatal("error creating user: ", err)
@@ -142,7 +141,7 @@ func TestFindUser(t *testing.T) {
 
 func TestFindUserWithInvalidEmail(t *testing.T) {
 
-	email := testHelpers.GenerateEmailAddress()
+	email := emailGenerator.Next()
 
 	if _, err := store.CreateUser(email, "password"); err != nil {
 		t.Fatal("error creating user: ", err)

@@ -2,7 +2,6 @@ package auth
 
 import (
 	"respond"
-	"respond/test_helpers"
 	"testing"
 )
 
@@ -20,7 +19,7 @@ func init () {
 
 func TestSignupUser(t *testing.T) {
 
-	_, err := auth.SignupUser(testHelpers.GenerateEmailAddress(), "")
+	_, err := auth.SignupUser(emailGenerator.Next(), "")
 
 	if validationError, ok := err.(*respond.DataError); !ok {
 		t.Fatal("signup with an empty password should result in a validation error")
@@ -51,7 +50,7 @@ func TestSignupUser(t *testing.T) {
 	}
 
 	var user *User
-	emailAddress := testHelpers.GenerateEmailAddress()
+	emailAddress := emailGenerator.Next()
 
 	user, err = auth.SignupUser(emailAddress, "password")
 
@@ -79,7 +78,7 @@ func TestSignupUser(t *testing.T) {
 
 func TestFindUserAgainstPassword(t *testing.T) {
 
-	email := testHelpers.GenerateEmailAddress()
+	email := emailGenerator.Next()
 
 	if _, err := userStore.CreateUser(email, "very-secret"); err != nil {
 		t.Fatal(err)
