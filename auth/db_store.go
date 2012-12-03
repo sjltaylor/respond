@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"respond"
 	"respond/crypto"
-	"respond/sqldb"
 	"strings"
 	"time"
 )
@@ -48,9 +47,20 @@ func (store *DBStore) Reset () (err error) {
 	return store.Create()
 }
 
+func (store *DBStore) prepareOrPanic(query string) (stmt *sql.Stmt) {
+
+	var err error
+
+	if stmt, err = store.db.Prepare(query); err != nil {
+		panic(err)
+	}
+
+	return
+}
+
 func (store *DBStore) PrepareOrPanic() {
 
-	store.insertUserStmt = sqldb.PrepareOrPanic(store.db, `
+	store.insertUserStmt = store.prepareOrPanic( `
 		INSERT INTO "users" 
 			("email", "password_salt", "password_hash", "created_at", "updated_at") 
 		VALUES 
@@ -58,7 +68,7 @@ func (store *DBStore) PrepareOrPanic() {
 		RETURNING "id";
 	`)
 
-	store.findUserByEmailStmt = sqldb.PrepareOrPanic(store.db, `
+	store.findUserByEmailStmt = store.prepareOrPanic(`
 		SELECT "id", "email", "password_salt", "password_hash", "created_at", "updated_at" FROM "users" WHERE "email" ILIKE $1;
 	`)
 }

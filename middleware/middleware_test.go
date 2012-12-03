@@ -7,6 +7,8 @@ import (
 	"testing"
 )
 
+var endpointWithMiddleware Endpoint = &testEndpointWithMiddleware{}
+
 func TestMiddlewareErrorDefault(t *testing.T) {
 
 	/*
@@ -130,5 +132,20 @@ func TestMiddlewareChainExecution(t *testing.T) {
 
 	if mw1StashedError != endpointError {
 		t.Fatal(`errors are not returned through the middleware`)
+	}
+}
+
+func TestEndpointMiddlewareIsAdded(t *testing.T) {
+
+	httpHandler := Middlewares().Endpoint(endpointWithMiddleware) // empty middlewares
+
+	fakeResponseWriter := testHelpers.NewFakeResponseWriter()
+
+	httpHandler(fakeResponseWriter, nil)
+
+	expectedBodyContent := `HELLO WORLD`
+
+	if fakeResponseWriter.Body != expectedBodyContent {
+		t.Fatalf("body of response should be: '%s', but was '%s'", expectedBodyContent, fakeResponseWriter.Body)
 	}
 }

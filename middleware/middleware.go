@@ -10,6 +10,10 @@ type Endpoint interface {
 	Process(http.ResponseWriter, *http.Request) error
 }
 
+type EndpointWithMiddlewares interface {
+	Middlewares() []Middleware
+}
+
 type NextFunc func(http.ResponseWriter) error
 type MiddlewareFunc func(http.ResponseWriter, *http.Request, NextFunc) error
 type EndpointFunc func(http.ResponseWriter, *http.Request) error
@@ -59,7 +63,15 @@ func (mws middlewares) EndpointFunc(fn EndpointFunc) http.HandlerFunc {
 
 func (mws middlewares) Endpoint(ep Endpoint) http.HandlerFunc {
 
-	middlewares := append(mws, endpointAsMiddleware(ep))
+	middlewares := []Middleware{}
+
+	middlewares = append(middlewares, mws...)
+
+	if endpointWithMiddleware, ok := ep.(EndpointWithMiddlewares); ok {
+		middlewares = append(middlewares, endpointWithMiddleware.Middlewares()...)
+	}
+
+	middlewares = append(middlewares, endpointAsMiddleware(ep))
 
 	return func(response http.ResponseWriter, request *http.Request) {
 

@@ -141,6 +141,17 @@ extendedMiddleware := middlewares.And(mw3, mw4, …)
 
 `extendedMiddleware` contains all of `middlewares` and `mw3` and `mw4`. It is equivalent to `Middlewares(mw1, mw2, mw3, mw4)`
 
+## Endpoints With Middleware
+
+when passing an endpoint to `Endpoint()`, if the endpoint implements `EndpointWithMiddlewares` it's middlewares are appended to the middlewares:
+
+```
+type EndpointWithMiddleware interface {
+	Middlewares() []Middleware
+}
+```
+
+For example, in respond/endpoints, the `HTMLEndpoint` defines middlewares containing an accept filter middleware that filters out requests that do not accept media type text/html and returns a NotAcceptableError backdown the middlewares
 
 ## Limitations
 

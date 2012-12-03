@@ -18,12 +18,19 @@ type HTMLEndpoint struct {
 	cachedTemplate *template.Template
 }
 
+func nilHandler(respond http.ResponseWriter, request *http.Request) (interface{}, error) {
+	return nil, nil
+}
+
 func NewHTMLEndpoint(layout string, partials ...string) *HTMLEndpoint {
 
-	return &HTMLEndpoint{
+	ep := &HTMLEndpoint{
 		Layout:   layout,
 		Partials: partials,
 	}
+
+	ep.Handler(nilHandler)
+	return ep
 }
 
 func (endpoint *HTMLEndpoint) Handler(fn Handler) *HTMLEndpoint {
@@ -92,6 +99,10 @@ func (endpoint *HTMLEndpoint) Process(response http.ResponseWriter, request *htt
 		panic(err)
 	}
 
+	/*
+		 buffer the template rendering otherwise if there is an error while
+		 processing the template, a partial template is written to the response
+	*/
 	buffer := bytes.NewBufferString("")
 
 	if err = t.Execute(buffer, data); err != nil {

@@ -2,6 +2,7 @@ package respond
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"respond/middleware"
 )
@@ -34,8 +35,10 @@ func (errorHandler *ErrorHandlerMiddleware) Process(response http.ResponseWriter
 			if e, ok := recovered.(error); ok {
 				err = e
 			} else {
-				err = fmt.Errorf("%+v", e)
+				err = fmt.Errorf("%+v", recovered)				
 			}
+
+			log.Println(fmt.Sprintf("respond: unhandled error: %s", err))
 
 			if statusCodedError, ok := err.(StatusCodedError); ok {
 				response.WriteHeader(statusCodedError.HTTPStatusCode())

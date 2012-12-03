@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"respond/middleware"
+	"respond/test_helpers"
 	"testing"
 )
 
@@ -22,7 +23,9 @@ func TestNotFoundErrorMiddleware(t *testing.T) {
 		return NewNotFoundError("something important")
 	}
 
-	e := notFoundMiddleware.Process(nil, nil, next)
+	fakeResponseWriter := testHelpers.NewFakeResponseWriter()
+
+	e := notFoundMiddleware.Process(fakeResponseWriter, nil, next)
 
 	if !called {
 		t.Fatal(`NotFoundErrorEndpoint should have been called`)
@@ -38,7 +41,7 @@ func TestNotFoundErrorMiddleware(t *testing.T) {
 		return fmt.Errorf("some other error")
 	}
 
-	e = notFoundMiddleware.Process(nil, nil, next)
+	e = notFoundMiddleware.Process(fakeResponseWriter, nil, next)
 
 	if called {
 		t.Fatal("should not call NotFoundErrorEndpoint when the error is not a NotFoundError")

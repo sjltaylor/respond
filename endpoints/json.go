@@ -10,9 +10,16 @@ type JSONEndpoint struct {
 	handler Handler
 }
 
+func emptyJsonHandler(respond http.ResponseWriter, request *http.Request) (interface{}, error) {
+	return (map[string]interface{}{}), nil
+}
+
 func NewJSONEndpoint() *JSONEndpoint {
 
-	return &JSONEndpoint{}
+	ep := &JSONEndpoint{}
+	ep.Handler(emptyJsonHandler)
+
+	return ep
 }
 
 func (endpoint *JSONEndpoint) Handler(fn Handler) *JSONEndpoint {
