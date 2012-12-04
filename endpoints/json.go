@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"respond/middleware"
 	"respond"
+	"respond/middleware"
 )
 
 type JSONEndpoint struct {

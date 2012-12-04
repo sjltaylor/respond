@@ -33,17 +33,17 @@ func NewDBStore(db *sql.DB) *DBStore {
 	return store
 }
 
-func (store * DBStore) Create () (err error) {
+func (store *DBStore) Create() (err error) {
 	_, err = store.db.Exec(createStmt)
 	return
 }
 
-func (store *DBStore) Reset () (err error) {
-	
+func (store *DBStore) Reset() (err error) {
+
 	if _, err = store.db.Exec(`DROP TABLE IF EXISTS users;`); err != nil {
 		return
 	}
-	
+
 	return store.Create()
 }
 
@@ -60,7 +60,7 @@ func (store *DBStore) prepareOrPanic(query string) (stmt *sql.Stmt) {
 
 func (store *DBStore) PrepareOrPanic() {
 
-	store.insertUserStmt = store.prepareOrPanic( `
+	store.insertUserStmt = store.prepareOrPanic(`
 		INSERT INTO "users" 
 			("email", "password_salt", "password_hash", "created_at", "updated_at") 
 		VALUES 
@@ -139,5 +139,3 @@ func (store *DBStore) FindUserByEmailAgainstPassword(email, password string) (us
 
 	return user, nil
 }
-
-

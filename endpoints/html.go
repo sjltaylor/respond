@@ -106,8 +106,8 @@ func (endpoint *HTMLEndpoint) Process(response http.ResponseWriter, request *htt
 	}
 
 	/*
-		 buffer the template rendering otherwise if there is an error while
-		 processing the template, a partial template is written to the response
+	 buffer the template rendering otherwise if there is an error while
+	 processing the template, a partial template is written to the response
 	*/
 	buffer := bytes.NewBufferString("")
 

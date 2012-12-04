@@ -35,7 +35,7 @@ func (errorHandler *ErrorHandlerMiddleware) Process(response http.ResponseWriter
 			if e, ok := recovered.(error); ok {
 				err = e
 			} else {
-				err = fmt.Errorf("%+v", recovered)				
+				err = fmt.Errorf("%+v", recovered)
 			}
 
 			log.Println(fmt.Sprintf("respond: unhandled error: %s", err))

@@ -23,7 +23,7 @@ func (notFound *NotFoundMiddleware) Process(response http.ResponseWriter, reques
 	if err := next(response); err != nil {
 
 		if notFoundError, ok := err.(*NotFoundError); ok {
-			
+
 			response.WriteHeader(404)
 
 			return notFound.NotFoundEndpoint(response, request, notFoundError)

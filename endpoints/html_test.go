@@ -3,10 +3,10 @@ package endpoints
 import (
 	"fmt"
 	"net/http"
-	"respond/test_helpers"
-	"testing"
 	"respond"
 	"respond/middleware"
+	"respond/test_helpers"
+	"testing"
 )
 
 type HTMLEndpointTest struct {
@@ -68,7 +68,7 @@ func TestHTMLEndpointMiddlewareInterceptsUnacceptableRequests(t *testing.T) {
 
 	var err error
 
-	var errorIntercept middleware.MiddlewareFunc = func (w http.ResponseWriter, r *http.Request, next middleware.NextFunc) error {
+	var errorIntercept middleware.MiddlewareFunc = func(w http.ResponseWriter, r *http.Request, next middleware.NextFunc) error {
 		err = next(w)
 		return nil
 	}
@@ -76,7 +76,7 @@ func TestHTMLEndpointMiddlewareInterceptsUnacceptableRequests(t *testing.T) {
 	httpHandler := middleware.Middlewares(errorIntercept).Endpoint(htmlEndpointTest.success)
 
 	httpHandler.ServeHTTP(nil, request)
-	
+
 	if _, ok := err.(*respond.NotAcceptableError); !ok {
 		t.Fatalf("a NotAcceptableError was not return. got: %s", err)
 	}
