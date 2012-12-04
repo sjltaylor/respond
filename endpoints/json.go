@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"respond/middleware"
+	"respond"
 )
 
 type JSONEndpoint struct {
@@ -25,6 +27,10 @@ func NewJSONEndpoint() *JSONEndpoint {
 func (endpoint *JSONEndpoint) Handler(fn Handler) *JSONEndpoint {
 	endpoint.handler = fn
 	return endpoint
+}
+
+func (endpoint *JSONEndpoint) Middlewares() []middleware.Middleware {
+	return []middleware.Middleware{respond.NewAcceptFilterMiddleware(`application/json`)}
 }
 
 func (endpoint *JSONEndpoint) Process(response http.ResponseWriter, request *http.Request) (returnError error) {

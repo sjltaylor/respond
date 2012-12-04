@@ -5,7 +5,10 @@ import (
 	"net/http"
 	"respond/test_helpers"
 	"testing"
+	"respond"
+	"respond/middleware"
 )
+
 
 type JSONEndpointTest struct {
 	successful     *JSONEndpoint
@@ -59,6 +62,27 @@ func TestJSONEndpointRendersTemplateWithTheDataReturnedByTheHandler(t *testing.T
 
 	if response.Header().Get(`Content-Type`) != `application/json` {
 		t.Fatalf("response content type should be application/json")
+	}
+}
+
+func TestJSONEndpointMiddlewareInterceptsUnacceptableRequests(t *testing.T) {
+
+	request, _ := http.NewRequest("GET", "http://localhost", nil)
+	request.Header.Add(`Accept`, `image/jpeg`)
+
+	var err error
+
+	var errorIntercept middleware.MiddlewareFunc = func (w http.ResponseWriter, r *http.Request, next middleware.NextFunc) error {
+		err = next(w)
+		return nil
+	}
+
+	httpHandler := middleware.Middlewares(errorIntercept).Endpoint(jsonEndpointTest.successful)
+
+	httpHandler.ServeHTTP(nil, request)
+	
+	if _, ok := err.(*respond.NotAcceptableError); !ok {
+		t.Fatalf("a NotAcceptableError was not return. got: %s", err)
 	}
 }
 

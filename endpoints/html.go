@@ -6,6 +6,8 @@ import (
 	"html/template"
 	"net/http"
 	"path"
+	"respond"
+	"respond/middleware"
 )
 
 var ReloadTemplates bool
@@ -31,6 +33,10 @@ func NewHTMLEndpoint(layout string, partials ...string) *HTMLEndpoint {
 
 	ep.Handler(nilHandler)
 	return ep
+}
+
+func (endpoint *HTMLEndpoint) Middlewares() []middleware.Middleware {
+	return []middleware.Middleware{respond.NewAcceptFilterMiddleware(`text/html`)}
 }
 
 func (endpoint *HTMLEndpoint) Handler(fn Handler) *HTMLEndpoint {
